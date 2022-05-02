@@ -88,6 +88,9 @@ def felsenstein(iterations, patients, weight_mat_reduced, mu):
                     math.log(P[sampled_patient[parent],sampled_patient[i]])
         all_sampled_patient.append(sampled_patient)
         
+    all_sampled_patient, unique_indx = np.unique(all_sampled_patient, axis=0, return_index=True)
+    sampled_likelihood = np.array(sampled_likelihood)[unique_indx]
+        
     infs = np.where(np.isinf(sampled_likelihood))[0]
     sampled_likelihood = np.delete(sampled_likelihood, infs)
     all_sampled_patient = pd.DataFrame(all_sampled_patient).T.drop(columns=infs)
@@ -170,13 +173,17 @@ def felsenstein_parallel(iterations, patients, weight_mat_reduced, mu, processes
     for samples, sampled_likelihood in a_pool.map(partial_function, range(iterations)):
         all_sampled_patient.append(samples)
         all_sampled_likelihood.append(sampled_likelihood)
+
+    all_sampled_patient, unique_indx = np.unique(all_sampled_patient, axis=0, return_index=True)
+    all_sampled_likelihood = np.array(all_sampled_likelihood)[unique_indx]
         
     infs = np.where(np.isinf(all_sampled_likelihood))[0]
     all_sampled_likelihood = np.delete(all_sampled_likelihood, infs)
     all_sampled_patient = pd.DataFrame(all_sampled_patient).T.drop(columns=infs)
+    
     if len(all_sampled_likelihood) == 0:
         raise ValueError("No network has been sampled.")
-
+    
     return all_sampled_patient.to_numpy(), all_sampled_likelihood
 
 
