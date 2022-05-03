@@ -72,14 +72,16 @@ def felsenstein(iterations, patients, weight_mat_reduced, mu):
             P = P_[i]
             if tree.out_degree(i) != 0:
                 clade_i = clades.loc[i]
-                clade_i.loc[sampled_patient[parent]] = max(1, clade_i.loc[sampled_patient[parent]])
-                PP = P[sampled_patient[parent],:] * likelihood[i,:] * clade_i
+                PP = P[sampled_patient[parent],:] * likelihood[i,:] 
                 no_samp = (parents_tnet > -1) & (parents_tnet != sampled_patient[parent])
                 no_samp[sampled_patient[parent]] = 0
                 PP = PP * np.logical_not(no_samp)
                 if sum(PP) ==0:
                     sampled_likelihood[iteration] = -math.inf
                     break
+                clade_i.loc[sampled_patient[parent]] = max(1, clade_i.loc[sampled_patient[parent]])
+                
+                PP = PP * clade_i
                 CDF = pd.DataFrame(PP).div(sum(PP)).cumsum() >= random.uniform(0, 1)
                 sampled_patient[i] = np.where(CDF == True)[0][0]
                 if (sampled_patient[i] != sampled_patient[parent]):
@@ -88,19 +90,14 @@ def felsenstein(iterations, patients, weight_mat_reduced, mu):
                     math.log(P[sampled_patient[parent],sampled_patient[i]])
         all_sampled_patient.append(sampled_patient)
         
+    isfinite = np.where(np.isfinite(sampled_likelihood))[0]
+    sampled_likelihood = np.array(sampled_likelihood)[isfinite]
+    all_sampled_patient = np.array(all_sampled_patient)[isfinite]
+    
     all_sampled_patient, unique_indx = np.unique(all_sampled_patient, axis=0, return_index=True)
     sampled_likelihood = np.array(sampled_likelihood)[unique_indx]
-        
-    infs = np.where(np.isinf(sampled_likelihood))[0]
-    sampled_likelihood = np.delete(sampled_likelihood, infs)
-    all_sampled_patient = pd.DataFrame(all_sampled_patient).T.drop(columns=infs)
-    if len(sampled_likelihood) == 0:
-        raise ValueError("No network has been sampled.")
-    dictionary = {"all_sampled_patient": all_sampled_patient, 'tree': tree, 'patients': patients}
-
-    a_file = open("all_sampled_patient.pkl", "wb")
-    pickle.dump(dictionary, a_file)
-    a_file.close()
+    
+    all_sampled_patient = pd.DataFrame(all_sampled_patient).T
     return all_sampled_patient.to_numpy(), sampled_likelihood
 
 
@@ -129,14 +126,16 @@ def felsenstein_func(iteratin, likelihood, P_, tree, clades, prob_distr, parents
         P = P_[i]
         if tree.out_degree(i) != 0:
             clade_i = clades.loc[i]
-            clade_i.loc[sampled_patient[parent]] = max(1, clade_i.loc[sampled_patient[parent]])
-            PP = P[sampled_patient[parent],:] * likelihood[i,:] * clade_i
+            PP = P[sampled_patient[parent],:] * likelihood[i,:] 
             no_samp = (parents_tnet > -1) & (parents_tnet != sampled_patient[parent])
             no_samp[sampled_patient[parent]] = 0
             PP = PP * np.logical_not(no_samp)
             if sum(PP) ==0:
                 sampled_likelihood = -math.inf
                 break
+            clade_i.loc[sampled_patient[parent]] = max(1, clade_i.loc[sampled_patient[parent]])
+            
+            PP = PP * clade_i
             CDF = pd.DataFrame(PP).div(sum(PP)).cumsum() >= random.uniform(0, 1)
             sampled_patient[i] = np.where(CDF == True)[0][0]
             if (sampled_patient[i] != sampled_patient[parent]):
@@ -173,13 +172,17 @@ def felsenstein_parallel(iterations, patients, weight_mat_reduced, mu, processes
     for samples, sampled_likelihood in a_pool.map(partial_function, range(iterations)):
         all_sampled_patient.append(samples)
         all_sampled_likelihood.append(sampled_likelihood)
-
+        
+    isfinite = np.where(np.isfinite(all_sampled_likelihood))[0]
+    all_sampled_likelihood = np.array(all_sampled_likelihood)[isfinite]
+    all_sampled_patient = np.array(all_sampled_patient)[isfinite]
+    print(all_sampled_patient.shape)
+    
     all_sampled_patient, unique_indx = np.unique(all_sampled_patient, axis=0, return_index=True)
     all_sampled_likelihood = np.array(all_sampled_likelihood)[unique_indx]
-        
-    infs = np.where(np.isinf(all_sampled_likelihood))[0]
-    all_sampled_likelihood = np.delete(all_sampled_likelihood, infs)
-    all_sampled_patient = pd.DataFrame(all_sampled_patient).T.drop(columns=infs)
+    print(all_sampled_patient.shape)
+    
+    all_sampled_patient = pd.DataFrame(all_sampled_patient).T
     
     if len(all_sampled_likelihood) == 0:
         raise ValueError("No network has been sampled.")
