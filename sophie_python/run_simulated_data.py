@@ -72,7 +72,7 @@ if __name__ == '__main__':
     iterations = int(sys.argv[3])
     cons_type = 'joint'
     distr_type = 'power law'
-    deg_distr = 2.5
+    deg_distr = 2.00
     enforce_tree = 0
     processes = int(sys.argv[4])
     
