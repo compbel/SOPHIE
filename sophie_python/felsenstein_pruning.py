@@ -134,7 +134,7 @@ def felsenstein_func(iteration, likelihood, P_, tree, clades, prob_distr, patien
             no_samp[sampled_patient[parent]] = 0
             PP = PP * np.logical_not(no_samp)
             if sum(PP) ==0:
-                sampled_likelihood[iteration] = -math.inf
+                sampled_likelihood = -math.inf
                 break
             clade_i.loc[sampled_patient[parent]] = max(1, clade_i.loc[sampled_patient[parent]])
             
