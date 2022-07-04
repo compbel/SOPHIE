@@ -29,3 +29,6 @@ The example of tool execution can be found in exampleRun.m
 Implementation of Edmonds algorithm for maximal arborescence is taken
 from https://www.mathworks.com/matlabcentral/fileexchange/24899-edmonds-algorithm 
 Copyright (c) 2009, Ashish Choudhary. All rights reserved.
+
+# DOI
+[![DOI](https://zenodo.org/badge/479482812.svg)](https://zenodo.org/badge/latestdoi/479482812)
