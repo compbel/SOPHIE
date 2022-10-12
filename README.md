@@ -32,3 +32,6 @@ Copyright (c) 2009, Ashish Choudhary. All rights reserved.
 
 # DOI
 [![DOI](https://zenodo.org/badge/479482812.svg)](https://zenodo.org/badge/latestdoi/479482812)
+
+# Python version of SOPHIE 
+You can find the python version in "sophie_python".
